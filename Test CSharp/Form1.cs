@@ -18,6 +18,7 @@ namespace Test_CSharp
 
         private Bitmap image;
         private Bitmap invimage;
+        private Bitmap ii;
 
         static public Int32 Clamp(Int32 a, Int32 min, Int32 max)
         {
@@ -26,53 +27,9 @@ namespace Test_CSharp
             else if (a > max) res = max;
             return res;
         }
-
-        //abstract class Filters
-        //{
-        //    public abstract Color calculatenewpixelcolor(Bitmap SourceImage, int i, int j);
-        //}
-        //class MatrixFilters : Filters
-        //{
-        //    protected float[,] kernel = null;
-
-        //    public override Color calculatenewpixelcolor(Bitmap SourceImage, int x, int y)
-        //    {
-        //    int rX = kernel.GetLength(0) / 2;
-        //    int rY = kernel.GetLength(1) / 2;
-        //    float resR = 0;
-        //    float resG = 0;
-        //    float resB = 0;
-        //            for (int l = -rY; l <= rY; l++)
-        //                for (int k = -rX; k <= rX; k++)
-        //                {
-        //                    int idX = Clamp(x + k, 0, SourceImage.Width - 1);
-        //    int idY = Clamp(y + l, 0, SourceImage.Height - 1);
-        //    Color nColor = SourceImage.GetPixel(idX, idY);
-        //    resR += nColor.R* kernel[k + rX, l + rY];
-        //    resG += nColor.G* kernel[k + rX, l + rY];
-        //    resB += nColor.B* kernel[k + rX, l + rY];
-        //}
-        //            return Color.FromArgb(Clamp((int) resR, 0, 255), Clamp((int) resG, 0, 255), Clamp((int) resB, 0, 255));
-        //    }
-        //    class BlurFilter : MatrixFilters
-        //    {
-        //        public BlurFilter()
-        //        {
-        //int sizeX = 3;
-        //int sizeY = 3;
-        //kernel = new float[sizeX, sizeY];
-        //            for (int i = 0; i<sizeX; i++)
-        //                for (int j = 0; j<sizeY; j++)
-        //                {
-        //                    kernel[i, j] = 1.0f / (float) (sizeX* sizeY);
-        //                }
-    //        }
-    //    }
-    //    static Filters filter = new BlurFilter();
-    //}
-    // инверсия цвета       я хз почему так функция пишется
+    // инверсия цвета
     public Color invert(Color c) => Color.FromArgb(c.A, 0xFF - c.R, 0xFF - c.G, 0xFF - c.B);
-        // полутон, в скобках чёрно белый фильтр
+        // полутон
         public Color poluton(Color c) => Color.FromArgb(c.A, (Int32)(0.299 * c.R + 0.587 * c.G + 0.114 * c.B), (Int32)(0.299 * c.R + 0.587 * c.G + 0.114 * c.B), (Int32)(0.299 * c.R + 0.587 * c.G + 0.114 * c.B));
         // сепия
         public Color sepia(Color c)
@@ -90,7 +47,7 @@ namespace Test_CSharp
             return Color.FromArgb(c.A, Clamp(c.R + inc, 0, 255), Clamp(c.G + inc, 0, 255), Clamp(c.B + inc, 0, 255));
         }
 
-        public Color blur (Bitmap source, int x, int y, float[,] kernel)
+        public Color CalcM (Bitmap source, int x, int y, float[,] kernel)
         {
             int rX = kernel.GetLength(0) / 2;
             int rY = kernel.GetLength(1) / 2;
@@ -109,12 +66,31 @@ namespace Test_CSharp
                 }
             return Color.FromArgb(Clamp((int)resR, 0, 255), Clamp((int)resG, 0, 255), Clamp((int)resB, 0, 255));
         }
-        private void button1_Click(object sender, EventArgs e) // главная кнопочка. батон хлеба
+        public Color CalcT(Bitmap source, int x, int y, float[,] kernel)
+        {
+            int rX = kernel.GetLength(0) / 2;
+            int rY = kernel.GetLength(1) / 2;
+            float resR = 0;
+            float resG = 0;
+            float resB = 0;
+            for (int l = -rY; l <= rY; l++)
+                for (int k = -rX; k <= rX; k++)
+                {
+                    int idX = Clamp(x + k, 0, source.Width - 1);
+                    int idY = Clamp(y + l, 0, source.Height - 1);
+                    Color nColor = source.GetPixel(idX, idY);
+                    resR += (nColor.R * kernel[k + rX, l + rY] + 255) / 2;
+                    resG += (nColor.G * kernel[k + rX, l + rY] + 255) / 2;
+                    resB += (nColor.B * kernel[k + rX, l + rY] + 255) / 2;
+                }
+            return Color.FromArgb(Clamp((int)resR, 0, 255), Clamp((int)resG, 0, 255), Clamp((int)resB, 0, 255));
+        }
+        private void button1_Click(object sender, EventArgs e) // точечный фильтр
         {
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            image = new Bitmap(@".\267464-werecat.jpg"); // полный путь до картинки
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
             pictureBox1.Image = image;
-            invimage = new Bitmap(@".\267464-werecat.jpg"); // собака перед путём обязательно
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
             int imax = image.Width;
             int jmax = image.Height;
             for (int j = 0; j < jmax; j++)
@@ -126,16 +102,16 @@ namespace Test_CSharp
             }
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.Image = invimage;
-            label1.Text = "сюда лут";
-            label2.Text = "отсюда гуд";
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
         }
 
         private void button2_Click(object sender, EventArgs e) // яркость
         {
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            image = new Bitmap(@".\267464-werecat.jpg"); // полный путь до картинки
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
             pictureBox1.Image = image;
-            invimage = new Bitmap(@".\267464-werecat.jpg"); // собака перед путём обязательно
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
             int imax = image.Width;
             int jmax = image.Height;
             int inc = (int)numericUpDown1.Value;
@@ -155,28 +131,445 @@ namespace Test_CSharp
             int sizeX = 3;
             int sizeY = 3;
             float [,] kernel = new float[sizeX, sizeY];
-            for (int i = 0; i < sizeX; i++)
-                for (int j = 0; j < sizeY; j++)
-                {
-                    kernel[i, j] = 1.0f / (float)(sizeX * sizeY);
-                }
+            //for (int i = 0; i < sizeX; i++)
+            //    for (int j = 0; j < sizeY; j++)
+            //    {
+            //        kernel[i, j] = 1.0f / (float)(sizeX * sizeY);
+            //    }
+            kernel[0, 0] = -1;
+            kernel[0, 1] = -2;
+            kernel[0, 2] = -1;
+            kernel[1, 0] = 0;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 0;
+            kernel[2, 0] = 1;
+            kernel[2, 1] = 2;
+            kernel[2, 2] = 1;
+
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            image = new Bitmap(@".\267464-werecat.jpg"); // полный путь до картинки
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
             pictureBox1.Image = image;
-            invimage = new Bitmap(@".\267464-werecat.jpg"); // собака перед путём обязательно
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
             int imax = image.Width;
             int jmax = image.Height;
             for (int j = 0; j < jmax; j++)
             {
                 for (int i = 0; i < imax; i++)
                 {
-                    invimage.SetPixel(i, j, blur(image, i, j, kernel)); // сюда вставлять фильтры
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
                 }
             }
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.Image = invimage;
-            label1.Text = "сюда лут";
-            label2.Text = "отсюда гуд";
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void сепияToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, sepia(invimage.GetPixel(i, j))); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void полутонToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, poluton(invimage.GetPixel(i, j))); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void инверсияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, invert(invimage.GetPixel(i, j))); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void собельToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = -1;
+            kernel[0, 1] = -2;
+            kernel[0, 2] = -1;
+            kernel[1, 0] = 0;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 0;
+            kernel[2, 0] = 1;
+            kernel[2, 1] = 2;
+            kernel[2, 2] = 1;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void блюрToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            for (int i = 0; i < sizeX; i++)
+                for (int j = 0; j < sizeY; j++)
+                {
+                    kernel[i, j] = 1.0f / (float)(sizeX * sizeY);
+                }
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void собельToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = -1;
+            kernel[0, 1] = 0;
+            kernel[0, 2] = 1;
+            kernel[1, 0] = -2;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 2;
+            kernel[2, 0] = -1;
+            kernel[2, 1] = 0;
+            kernel[2, 2] = 1;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void резкостьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = 0;
+            kernel[0, 1] = -1;
+            kernel[0, 2] = 0;
+            kernel[1, 0] = -1;
+            kernel[1, 1] = 5;
+            kernel[1, 2] = -1;
+            kernel[2, 0] = 0;
+            kernel[2, 1] = -1;
+            kernel[2, 2] = 0;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void тиснениеToolStripMenuItem_Click(object sender, EventArgs e) // не работает(наверно)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = 0;
+            kernel[0, 1] = 1;
+            kernel[0, 2] = 0;
+            kernel[1, 0] = 1;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = -1;
+            kernel[2, 0] = 0;
+            kernel[2, 1] = -1;
+            kernel[2, 2] = 0;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            ii = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg");
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    ii.SetPixel(i, j, poluton(image.GetPixel(i, j))); // сюда вставлять фильтры
+                }
+            }
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcT(ii, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void моушенБлюрToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = 1;
+            kernel[0, 1] = 0;
+            kernel[0, 2] = 0;
+            kernel[1, 0] = 0;
+            kernel[1, 1] = 1;
+            kernel[1, 2] = 0;
+            kernel[2, 0] = 0;
+            kernel[2, 1] = 0;
+            kernel[2, 2] = 1;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void щаррToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = 3;
+            kernel[0, 1] = 10;
+            kernel[0, 2] = 3;
+            kernel[1, 0] = 0;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 0;
+            kernel[2, 0] = -3;
+            kernel[2, 1] = -10;
+            kernel[2, 2] = -3;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void щаррToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = 3;
+            kernel[0, 1] = 0;
+            kernel[0, 2] = -3;
+            kernel[1, 0] = 10;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = -10;
+            kernel[2, 0] = 3;
+            kernel[2, 1] = 0;
+            kernel[2, 2] = -3;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void прюиттToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = -1;
+            kernel[0, 1] = -1;
+            kernel[0, 2] = -1;
+            kernel[1, 0] = 0;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 0;
+            kernel[2, 0] = 1;
+            kernel[2, 1] = 1;
+            kernel[2, 2] = 1;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
+        }
+
+        private void прюиттToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            int sizeX = 3;
+            int sizeY = 3;
+            float[,] kernel = new float[sizeX, sizeY];
+            kernel[0, 0] = -1;
+            kernel[0, 1] = 0;
+            kernel[0, 2] = 1;
+            kernel[1, 0] = -1;
+            kernel[1, 1] = 0;
+            kernel[1, 2] = 1;
+            kernel[2, 0] = -1;
+            kernel[2, 1] = 0;
+            kernel[2, 2] = 1;
+
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            image = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // полный путь до картинки
+            pictureBox1.Image = image;
+            invimage = new Bitmap(@"C:\Users\Tom\Desktop\laba-po-kg\image.jpg"); // собака перед путём обязательно
+            int imax = image.Width;
+            int jmax = image.Height;
+            for (int j = 0; j < jmax; j++)
+            {
+                for (int i = 0; i < imax; i++)
+                {
+                    invimage.SetPixel(i, j, CalcM(image, i, j, kernel)); // сюда вставлять фильтры
+                }
+            }
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.Image = invimage;
+            label1.Text = "сюда вход";
+            label2.Text = "отсюда выход";
         }
     }
 }
